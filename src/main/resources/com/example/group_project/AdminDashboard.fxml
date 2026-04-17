@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="768" prefWidth="1024" styleClass="root" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.group_project.AdminController">
+
+    <left>
+        <VBox prefWidth="220" spacing="20" styleClass="sidebar">
+            <padding>
+                <Insets bottom="20" left="20" right="20" top="30" />
+            </padding>
+            <Label style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;" text="Admin Control" />
+            <Button maxWidth="Infinity" styleClass="button" text="System Modules →" />
+        </VBox>
+    </left>
+
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+
+            <Tab text="Room Management">
+                <VBox spacing="15">
+                    <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
+                    <HBox spacing="10">
+                        <Button styleClass="button" text="+ Add Room" />
+                        <Button styleClass="button" text="Edit Selected" />
+                        <Button styleClass="button-danger" text="Delete Room" />
+                    </HBox>
+                    <TableView fx:id="roomTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colRoomNum" prefWidth="150" text="Room Number" />
+                            <TableColumn fx:id="colRoomType" prefWidth="150" text="Room Type" />
+                            <TableColumn fx:id="colPricePerNight" prefWidth="150" text="Price/Night ($)" />
+                            <TableColumn fx:id="colCapacity" prefWidth="100" text="Capacity" />
+                            <TableColumn fx:id="colStatus" prefWidth="180" text="Current Status" />
+                        </columns>
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <Tab text="User Management">
+                <VBox spacing="15">
+                    <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
+                    <HBox spacing="10">
+                        <Button styleClass="button" text="+ Add Receptionist" />
+                        <Button styleClass="button-danger" text="Revoke Access" />
+                    </HBox>
+                    <TableView fx:id="userTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colUserId" prefWidth="100.0" text="User ID" />
+                            <TableColumn fx:id="colUsername" prefWidth="200.0" text="Username" />
+                            <TableColumn fx:id="colUserRole" prefWidth="150.0" text="Role" />
+                            <TableColumn fx:id="colUserContact" prefWidth="200.0" text="Contact Info" />
+                        </columns>
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                    </TableView>
+                </VBox>
+            </Tab>
+
+            <Tab text="Reports &amp; Analytics">
+                <VBox alignment="CENTER" spacing="20">
+                    <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
+                    <Label style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" text="Real-Time Occupancy Analytics" />
+                    <PieChart fx:id="occupancyChart" prefHeight="500" prefWidth="500" />
+                </VBox>
+            </Tab>
+
+            <Tab text="System Logs">
+                <VBox spacing="10">
+                    <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
+                    <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Audit Trail (Read-Only)" />
+                    <TextArea fx:id="txtSystemLogs" editable="false" prefHeight="200" prefWidth="200" promptText="Fetching system logs..." styleClass="text-field" VBox.vgrow="ALWAYS" />
+                </VBox>
+            </Tab>
+
+        </TabPane>
+    </center>
+</BorderPane>
