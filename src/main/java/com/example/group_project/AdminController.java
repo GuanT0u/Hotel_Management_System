@@ -169,6 +169,76 @@ public class AdminController {
         }
     }
 
+    @FXML
+    public void handleAddRoom() {
+        openRoomDialog(null);
+    }
+
+    @FXML
+    public void handleEditRoom() {
+        Map<String, Object> selectedRoom = roomTable.getSelectionModel().getSelectedItem();
+        if (selectedRoom == null) {
+            showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a room from the table to edit.");
+            return;
+        }
+        openRoomDialog(selectedRoom);
+    }
+
+    private void openRoomDialog(Map<String, Object> roomData) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("RoomDialog.fxml"));
+            Parent root = loader.load();
+
+            RoomDialogController controller = loader.getController();
+            if (roomData != null) {
+                controller.setRoomData(roomData); // inject data to enter edit mode
+            }
+
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle(roomData == null ? "Add Room" : "Edit Room");
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+
+            // if the operation working, refresh tb
+            if (controller.isOperationSuccessful()) {
+                refreshTable();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void handleDeleteRoom() {
+        Map<String, Object> selectedRoom = roomTable.getSelectionModel().getSelectedItem();
+        if (selectedRoom == null) {
+            showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a room to delete.");
+            return;
+        }
+
+        int roomNum = (int) selectedRoom.get("RoomNumber");
+
+        // 2nd confirm b4 del dangerous operation
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Delete Room");
+        confirm.setHeaderText("Delete Room " + roomNum + "?");
+        confirm.setContentText("Warning: If this room is linked to existing reservations, the database will block the deletion to protect data integrity.");
+
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            boolean success = roomDAO.deleteRoom(roomNum);
+
+            if (success) {
+                showAlert(Alert.AlertType.INFORMATION, "Success", "Room deleted successfully.");
+                refreshTable();
+            } else {
+                // capture and alert fk constraint got error
+                showAlert(Alert.AlertType.ERROR, "Delete Failed", "Cannot delete this room. It is likely tied to existing guest reservations in the database.");
+            }
+        }
+    }
+
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);

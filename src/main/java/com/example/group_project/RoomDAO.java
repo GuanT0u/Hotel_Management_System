@@ -77,4 +77,45 @@ public class RoomDAO {
             return false;
         }
     }
+
+    public boolean addRoom(int roomNumber, String roomType, double pricePerNight, int capacity, String status) {
+        String query = "INSERT INTO rooms (RoomNumber, RoomType, PricePerNight, Capacity, Status) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, roomNumber);
+            stmt.setString(2, roomType);
+            stmt.setDouble(3, pricePerNight);
+            stmt.setInt(4, capacity);
+            stmt.setString(5, status);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false; // if roomNum already have, itll throw exception and rt F
+        }
+    }
+
+    public boolean updateRoom(int roomNumber, String roomType, double pricePerNight, int capacity, String status) {
+        String query = "UPDATE rooms SET RoomType = ?, PricePerNight = ?, Capacity = ?, Status = ? WHERE RoomNumber = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, roomType);
+            stmt.setDouble(2, pricePerNight);
+            stmt.setInt(3, capacity);
+            stmt.setString(4, status);
+            stmt.setInt(5, roomNumber);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteRoom(int roomNumber) {
+        String query = "DELETE FROM rooms WHERE RoomNumber = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, roomNumber);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false; // if the room already got reservation (connect fk), del will fail
+        }
+    }
 }

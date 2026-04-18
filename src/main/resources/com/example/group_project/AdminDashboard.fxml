@@ -32,9 +32,9 @@
                 <VBox spacing="15">
                     <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
                     <HBox spacing="10">
-                        <Button styleClass="button" text="+ Add Room" />
-                        <Button styleClass="button" text="Edit Selected" />
-                        <Button styleClass="button-danger" text="Delete Room" />
+                        <Button styleClass="button" text="+ Add Room" onAction="#handleAddRoom" />
+                        <Button styleClass="button" text="Edit Selected" onAction="#handleEditRoom" />
+                        <Button styleClass="button-danger" text="Delete Room" onAction="#handleDeleteRoom" />
                     </HBox>
                     <TableView fx:id="roomTable" styleClass="table-view" VBox.vgrow="ALWAYS">
                         <columns>
