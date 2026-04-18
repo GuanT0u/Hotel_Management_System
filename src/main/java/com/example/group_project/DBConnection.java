@@ -9,9 +9,9 @@ public class DBConnection {
     private Connection connection;
     
     // Database credentials
-    private final String URL = "jdbc:mysql://localhost:3306/hotel_management_db?useUnicode=true&characterEncoding=UTF-8";
+    private final String URL = "jdbc:mysql://my2.shuipu.work:2205/hotelManagement?useUnicode=true&characterEncoding=UTF-8";
     private final String USERNAME = "root"; // Update with your local MySQL username
-    private final String PASSWORD = "123456"; // Update with your local MySQL password
+    private final String PASSWORD = "HelloWorld"; // Update with your local MySQL password
 
     private DBConnection() {
         try {
