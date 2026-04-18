@@ -75,18 +75,28 @@ public class AdminController {
         List<Map<String, Object>> rooms = roomDAO.searchRooms("All", "All");
         ObservableList<Map<String, Object>> data = FXCollections.observableArrayList(rooms);
         roomTable.setItems(data);
+
+        loadOccupancyData();
     }
 
     private void loadOccupancyData() {
-        // In a full implementation, you would write a DAO method like reportDAO.getOccupancyStats()
-        // Here is how you bind data to the chart:
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
-                new PieChart.Data("Occupied", 45),
-                new PieChart.Data("Available", 50),
-                new PieChart.Data("Maintenance", 5)
-        );
+
+        // call DAO to get newest statistics
+        Map<String, Integer> statusCounts = roomDAO.getRoomStatusCounts();
+
+        // got an empty dataset
+        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+
+        // loop the db results and create chart slices
+        // for clear checking, i put the specific num like: "Occupied (5)"
+        for (Map.Entry<String, Integer> entry : statusCounts.entrySet()) {
+            String labelName = entry.getKey() + " (" + entry.getValue() + ")";
+            pieChartData.add(new PieChart.Data(labelName, entry.getValue()));
+        }
+
+        // 4. 将数据塞入图表
         occupancyChart.setData(pieChartData);
-        occupancyChart.setTitle("Current Room Occupancy");
+        occupancyChart.setTitle("Real-Time Room Occupancy");
     }
 
     private void setupUserTable() {

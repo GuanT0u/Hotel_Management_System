@@ -78,6 +78,23 @@ public class RoomDAO {
         }
     }
 
+    public Map<String, Integer> getRoomStatusCounts() {
+        Map<String, Integer> counts = new HashMap<>();
+        String query = "SELECT Status, COUNT(*) as Count FROM rooms GROUP BY Status";
+
+        try (PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                counts.put(rs.getString("Status"), rs.getInt("Count"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return counts;
+    }
+
     public boolean addRoom(int roomNumber, String roomType, double pricePerNight, int capacity, String status) {
         String query = "INSERT INTO rooms (RoomNumber, RoomType, PricePerNight, Capacity, Status) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
