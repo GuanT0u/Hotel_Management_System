@@ -53,8 +53,8 @@
                 <VBox spacing="15">
                     <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
                     <HBox spacing="10">
-                        <Button styleClass="button" text="+ Add Receptionist" />
-                        <Button styleClass="button-danger" text="Revoke Access" />
+                        <Button styleClass="button" text="+ Add Receptionist" onAction="#handleAddReceptionist" />
+                        <Button styleClass="button-danger" text="Revoke Access" onAction="#handleRevokeAccess" />
                     </HBox>
                     <TableView fx:id="userTable" styleClass="table-view" VBox.vgrow="ALWAYS">
                         <columns>

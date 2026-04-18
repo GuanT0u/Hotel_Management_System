@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="300.0" prefWidth="400.0" spacing="15.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.group_project.AddUserController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+
+    <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Create Receptionist Account" />
+
+    <VBox spacing="5.0">
+        <Label text="Username:" />
+        <TextField fx:id="txtUsername" promptText="Enter username" styleClass="text-field" />
+    </VBox>
+
+    <VBox spacing="5.0">
+        <Label text="Password:" />
+        <PasswordField fx:id="txtPassword" promptText="Enter a secure password" styleClass="password-field" />
+    </VBox>
+
+    <VBox spacing="5.0">
+        <Label text="Contact Info (Phone/Email):" />
+        <TextField fx:id="txtContactInfo" promptText="Enter contact details" styleClass="text-field" />
+    </VBox>
+
+    <HBox alignment="CENTER_RIGHT" spacing="10.0">
+        <VBox.margin>
+            <Insets top="10.0" />
+        </VBox.margin>
+        <Button mnemonicParsing="false" onAction="#handleCancel" styleClass="button-danger" text="Cancel" />
+        <Button mnemonicParsing="false" onAction="#handleSave" styleClass="button" text="Create Account" />
+    </HBox>
+</VBox>

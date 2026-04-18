@@ -93,4 +93,16 @@ public class UserDAO {
         }
         return userList;
     }
+
+    public boolean deleteUser(int userId) {
+        String query = "DELETE FROM users WHERE UserID = ? AND Role != 'Admin'";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            int rowsAffected = stmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

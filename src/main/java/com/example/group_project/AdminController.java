@@ -5,10 +5,18 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.chart.PieChart;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import java.io.IOException;
+import java.util.Optional;
+
 import java.util.List;
 import java.util.Map;
 
@@ -97,5 +105,75 @@ public class AdminController {
 
     private void loadSystemLogs() {
         txtSystemLogs.setText("System Started...\nDatabase Connected Successfully.\nAdmin logged in.");
+    }
+
+    @FXML
+    public void handleAddReceptionist() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("AddUserDialog.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle("Add Receptionist");
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+
+            // 弹窗关闭后，检查是否添加成功
+            AddUserController controller = loader.getController();
+            if (controller.isOperationSuccessful()) {
+                // 刷新表格
+                setupUserTable();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void handleRevokeAccess() {
+        // get what u selecting
+        Map<String, Object> selectedUser = userTable.getSelectionModel().getSelectedItem();
+
+        if (selectedUser == null) {
+            showAlert(Alert.AlertType.WARNING, "No Selection", "Please select a user to revoke access.");
+            return;
+        }
+
+        // check is the user that u selected are admin or not
+        String role = (String) selectedUser.get("Role");
+        if ("Admin".equalsIgnoreCase(role)) {
+            showAlert(Alert.AlertType.ERROR, "Action Denied", "You cannot revoke access from an Admin account.");
+            return;
+        }
+
+        // 2nd confirm dialog if u wanna revoke access for the user that u selected
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Confirm Deletion");
+        confirmDialog.setHeaderText("Revoke Access for " + selectedUser.get("Username") + "?");
+        confirmDialog.setContentText("This user will no longer be able to log into the system.");
+
+        Optional<ButtonType> result = confirmDialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            // call backend to del the user that u selected
+            int userId = (int) selectedUser.get("UserID");
+            boolean success = userDAO.deleteUser(userId);
+
+            if (success) {
+                showAlert(Alert.AlertType.INFORMATION, "Success", "User access revoked successfully.");
+                setupUserTable(); // refresh tb
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Could not delete the user.");
+            }
+        }
+    }
+
+    private void showAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }
