@@ -86,6 +86,8 @@ public class ReceptionistController {
         if (results.isEmpty()) {
             showAlert(Alert.AlertType.INFORMATION, "Search Result", "No rooms found matching your criteria.");
         }
+
+        new LogDAO().logAction("Search for Room type " + type + " and status " + status);
     }
 
     @FXML
@@ -120,8 +122,9 @@ public class ReceptionistController {
 
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Reservation created and Room status updated!");
-                clearReservationForm();
-                // Clear form logic here
+                clearReservationForm(); // Clear form logic here
+
+                new LogDAO().logAction("Created a new reservation for Room " + roomNum + " for Guest ID: " + guestId);
             } else {
                 showAlert(Alert.AlertType.ERROR, "Booking Failed", "The room may be unavailable. Check logs.");
             }
@@ -132,7 +135,7 @@ public class ReceptionistController {
 
     @FXML
     public void handleOpenAddGuestDialog() {
-        openGuestDialog(null); // 传入 null 表示是添加模式
+        openGuestDialog(null); // pass null mean add mode
     }
 
     @FXML
@@ -142,6 +145,8 @@ public class ReceptionistController {
         List<Map<String, Object>> results = guestDAO.searchGuests(keyword);
 
         guestTable.setItems(FXCollections.observableArrayList(results));
+
+        new LogDAO().logAction("Search for Guests keyword " + keyword);
     }
 
     @FXML
@@ -165,7 +170,7 @@ public class ReceptionistController {
 
             GuestDialogController controller = loader.getController();
 
-            // 如果 guestData 不为空，说明是编辑模式，注入数据
+            //if the guestData not empty, it mean its edit mode and data is injected
             if (guestData != null) {
                 controller.setGuestData(guestData);
             }
@@ -176,12 +181,10 @@ public class ReceptionistController {
             stage.setScene(new Scene(root));
             stage.showAndWait();
 
-            // 操作完成后刷新表格
             int resultId = controller.getGuestId();
             if (resultId != -1) {
-                handleSearchGuests(); // 重新加载数据以显示更新结果
+                handleSearchGuests();
 
-                // 如果是在预订页面点的新建，自动填入 ID
                 if (guestData == null) {
                     txtGuestId.setText(String.valueOf(resultId));
                 }

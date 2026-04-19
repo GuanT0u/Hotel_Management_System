@@ -41,6 +41,7 @@ public class AdminController {
 
     private RoomDAO roomDAO = new RoomDAO();
     private UserDAO userDAO = new UserDAO();
+    private LogDAO logDAO = new LogDAO();
 
     @FXML
     public void initialize() {
@@ -94,7 +95,7 @@ public class AdminController {
             pieChartData.add(new PieChart.Data(labelName, entry.getValue()));
         }
 
-        // 4. 将数据塞入图表
+        // put those data to the piechart
         occupancyChart.setData(pieChartData);
         occupancyChart.setTitle("Real-Time Room Occupancy");
     }
@@ -114,7 +115,9 @@ public class AdminController {
     }
 
     private void loadSystemLogs() {
-        txtSystemLogs.setText("System Started...\nDatabase Connected Successfully.\nAdmin logged in.");
+        // call DAO to got sys log
+        String logs = logDAO.getAllLogsAsString();
+        txtSystemLogs.setText(logs);
     }
 
     @FXML
@@ -129,10 +132,9 @@ public class AdminController {
             stage.setScene(new Scene(root));
             stage.showAndWait();
 
-            // 弹窗关闭后，检查是否添加成功
+            // check is work or not after dialog close
             AddUserController controller = loader.getController();
             if (controller.isOperationSuccessful()) {
-                // 刷新表格
                 setupUserTable();
             }
 
@@ -173,6 +175,9 @@ public class AdminController {
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Success", "User access revoked successfully.");
                 setupUserTable(); // refresh tb
+
+                logDAO.logAction("Has Revoked Access for " + selectedUser.get("Username"));
+                loadSystemLogs();
             } else {
                 showAlert(Alert.AlertType.ERROR, "Error", "Could not delete the user.");
             }
@@ -213,6 +218,9 @@ public class AdminController {
             // if the operation working, refresh tb
             if (controller.isOperationSuccessful()) {
                 refreshTable();
+
+                logDAO.logAction(roomData == null ? "Added a new room." : "Updated room details for ");
+                loadSystemLogs();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -242,6 +250,9 @@ public class AdminController {
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Room deleted successfully.");
                 refreshTable();
+
+                new LogDAO().logAction("Has Deleted a Room for " + roomNum);
+                loadSystemLogs();
             } else {
                 // capture and alert fk constraint got error
                 showAlert(Alert.AlertType.ERROR, "Delete Failed", "Cannot delete this room. It is likely tied to existing guest reservations in the database.");

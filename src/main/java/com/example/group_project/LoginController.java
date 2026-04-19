@@ -21,21 +21,23 @@ public class LoginController {
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText().trim();
 
-        // 1. Input Validation
+        // Input Validation
         if (username.isEmpty() || password.isEmpty()) {
             showAlert(Alert.AlertType.WARNING, "Validation Error", "Username and Password cannot be empty.");
             return;
         }
 
-        // 2. DAO Integration
+        // DAO Integration
         String role = userDAO.authenticateUser(username, password);
 
-        // 3. Routing & Exception Management
+        // Routing & Exception Management
         if (role != null) {
             if (role.equals("Admin")) {
                 loadDashboard("AdminDashboard.fxml", "Admin Dashboard");
+                new LogDAO().logAction("Login as " + role);
             } else if (role.equals("Receptionist")) {
                 loadDashboard("ReceptionistDashboard.fxml", "Receptionist Dashboard");
+                new LogDAO().logAction("Login as " + role);
             }
         } else {
             showAlert(Alert.AlertType.ERROR, "Login Failed", "Invalid username or password. Please try again.");

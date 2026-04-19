@@ -28,7 +28,7 @@ public class UserDAO {
         String role = null;
         // In a real production environment, you would hash the incoming password and compare. 
         // Assuming plain text matching for the scope of standard OOP GUI testing unless hashed check is implemented.
-        String query = "SELECT Role FROM users WHERE Username = ? AND Password = ?";
+        String query = "SELECT UserID, Role FROM users WHERE Username = ? AND Password = ?";
         
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);
@@ -37,6 +37,9 @@ public class UserDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     role = rs.getString("Role");
+                    int userId = rs.getInt("UserID");
+                    // passing the logged user's info to global static class
+                    UserSession.login(userId, role);
                 }
             }
         }

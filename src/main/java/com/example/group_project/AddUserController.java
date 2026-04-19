@@ -31,6 +31,8 @@ public class AddUserController {
 
         if (isSuccess) {
             closeWindow();
+
+            new LogDAO().logAction("Added a New Receptionist for " + username);
         } else {
             showAlert(Alert.AlertType.ERROR, "Error", "Failed to add user. Username might already exist.");
         }

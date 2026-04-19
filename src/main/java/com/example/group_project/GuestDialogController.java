@@ -59,6 +59,7 @@ public class GuestDialogController {
 
         if (isOperationSuccessful) {
             closeWindow();
+            new LogDAO().logAction("Saved Change Detail for Guest " + name);
         } else {
             showAlert(Alert.AlertType.ERROR, "Database Error", "Operation failed. Email may already exist.");
         }
