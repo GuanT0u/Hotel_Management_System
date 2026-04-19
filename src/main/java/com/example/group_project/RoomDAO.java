@@ -113,4 +113,34 @@ public class RoomDAO {
             return false; // if the room already got reservation (connect fk), del will fail
         }
     }
+
+    //filtrate all available roomNum based on roomtype and reservation date
+    public List<Integer> getAvailableRoomsForBooking(String roomType, java.sql.Date startDate, java.sql.Date endDate) {
+        List<Integer> availableRooms = new ArrayList<>();
+
+        // 核心 SQL：筛选条件排除掉那些在指定时间内有 Confirmed/Checked-in 记录的房间
+        String query = "SELECT RoomNumber FROM rooms WHERE RoomType = ? AND Status != 'Under Maintenance' " +
+                "AND RoomNumber NOT IN (" +
+                "    SELECT RoomNumber FROM reservations " +
+                "    WHERE Status IN ('Confirmed', 'Checked-in') " +
+                "    AND (StartDate < ? AND EndDate > ?)" +
+                ")";
+
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, roomType);
+            stmt.setDate(2, endDate);   // 注意顺序：旧开始时间 < 新结束时间
+            stmt.setDate(3, startDate); // 注意顺序：旧结束时间 > 新开始时间
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    availableRooms.add(rs.getInt("RoomNumber"));
+                }
+            }
+        }
+
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return availableRooms;
+    }
 }

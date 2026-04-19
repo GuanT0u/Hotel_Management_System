@@ -49,16 +49,17 @@
                             <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
                             <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
                             <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
+                            <RowConstraints minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
                         </rowConstraints>
 
                         <Label text="Guest ID:" />
-                        <HBox spacing="10" GridPane.columnIndex="1">
-                            <TextField fx:id="txtGuestId" promptText="Enter Guest ID" styleClass="text-field" GridPane.columnIndex="1" />
+                        <HBox spacing="10" GridPane.columnIndex="1" alignment="CENTER_LEFT">
+                            <TextField fx:id="txtGuestId" promptText="Enter Guest ID" styleClass="text-field" prefWidth="150.0" />
                             <Button mnemonicParsing="false" text="+ New" onAction="#handleOpenAddGuestDialog" styleClass="button-secondary"/>
                         </HBox>
 
-                        <Label text="Room Number:" GridPane.rowIndex="1" />
-                        <TextField fx:id="txtRoomNumber" maxWidth="250.0" promptText="e.g. 302" styleClass="text-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <Label text="Room Type:" GridPane.rowIndex="1" />
+                        <ComboBox fx:id="comboCreateRoomType" prefWidth="250.0" promptText="Select Room Type" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                         <Label text="Check-in Date:" GridPane.rowIndex="2" />
                         <DatePicker fx:id="dpStartDate" prefWidth="250.0" styleClass="date-picker" GridPane.columnIndex="1" GridPane.rowIndex="2" />
@@ -66,8 +67,11 @@
                         <Label text="Check-out Date:" GridPane.rowIndex="3" />
                         <DatePicker fx:id="dpEndDate" prefWidth="250.0" styleClass="date-picker" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
-                        <Label text="Total Price ($):" GridPane.rowIndex="4" />
-                        <TextField fx:id="txtTotalPrice" maxWidth="250.0" promptText="0.00" styleClass="text-field" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                        <Label text="Available Room #:" GridPane.rowIndex="4" />
+                        <ComboBox fx:id="comboCreateRoomNumber" prefWidth="250.0" promptText="Select Dates &amp; Type First" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+                        <Label text="Total Price ($):" GridPane.rowIndex="5" />
+                        <TextField fx:id="txtTotalPrice" maxWidth="250.0" promptText="0.00" styleClass="text-field" GridPane.columnIndex="1" GridPane.rowIndex="5" />
                     </GridPane>
 
                     <Button mnemonicParsing="false" onAction="#handleCreateReservation" prefHeight="40.0" prefWidth="200.0" styleClass="button" text="Confirm &amp; Book Room" />

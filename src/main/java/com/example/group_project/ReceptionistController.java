@@ -23,10 +23,11 @@ import java.util.Map;
 public class ReceptionistController {
 
     @FXML private TextField txtGuestId;
-    @FXML private TextField txtRoomNumber;
     @FXML private DatePicker dpStartDate;
     @FXML private DatePicker dpEndDate;
     @FXML private TextField txtTotalPrice;
+    @FXML private ComboBox<String> comboCreateRoomType;
+    @FXML private ComboBox<Integer> comboCreateRoomNumber;
 
     @FXML private ComboBox<String> comboRoomType;
     @FXML private ComboBox<String> comboStatus;
@@ -81,6 +82,12 @@ public class ReceptionistController {
         ));
         comboStatus.setValue("All");
 
+        comboCreateRoomType.setItems(FXCollections.observableArrayList(
+                "Single",
+                "Double",
+                "Suite"
+        ));
+
         colSearchRoomNum.setCellValueFactory(data ->
                 new SimpleObjectProperty<>((Integer) data.getValue().get("RoomNumber")));
         colSearchType.setCellValueFactory(data ->
@@ -98,6 +105,13 @@ public class ReceptionistController {
                 new SimpleStringProperty((String) data.getValue().get("ContactNumber")));
         colGuestEmail.setCellValueFactory(data ->
                 new SimpleStringProperty((String) data.getValue().get("Email")));
+
+        comboCreateRoomType.valueProperty().addListener((obs, oldVal, newVal) ->
+                updateAvailableRooms());
+        dpStartDate.valueProperty().addListener((obs, oldVal, newVal) ->
+                updateAvailableRooms());
+        dpEndDate.valueProperty().addListener((obs, oldVal, newVal) ->
+                updateAvailableRooms());
 
         setupManageTab();
     }
@@ -122,7 +136,7 @@ public class ReceptionistController {
     @FXML
     public void handleCreateReservation() {
         // 1. Strict Input Validation (UX Requirement)
-        if (txtGuestId.getText().isEmpty() || txtRoomNumber.getText().isEmpty() ||
+        if (txtGuestId.getText().isEmpty() || comboCreateRoomNumber.getValue() == null ||
                 dpStartDate.getValue() == null || dpEndDate.getValue() == null) {
             showAlert(Alert.AlertType.WARNING, "Missing Details", "Please fill out all fields.");
             return;
@@ -141,7 +155,7 @@ public class ReceptionistController {
         double price = 0;
         try {
             guestId = Integer.parseInt(txtGuestId.getText());
-            roomNum = Integer.parseInt(txtRoomNumber.getText());
+            roomNum = comboCreateRoomNumber.getValue();
             price = Double.parseDouble(txtTotalPrice.getText());
 
             // 2. Integration with Transactional DAO
@@ -389,10 +403,44 @@ public class ReceptionistController {
 
     private void clearReservationForm() {
         txtGuestId.clear();
-        txtRoomNumber.clear();
+        comboCreateRoomType.setValue(null);
+        comboCreateRoomNumber.setItems(FXCollections.observableArrayList());
+        comboCreateRoomNumber.setValue(null);
+        comboCreateRoomNumber.setPromptText("Select Dates & Type First");
         dpStartDate.setValue(null);
         dpEndDate.setValue(null);
         txtTotalPrice.clear();
+    }
+
+    // check and fill in the available room dropdown boxes
+    private void updateAvailableRooms() {
+        String type = comboCreateRoomType.getValue();
+        LocalDate start = dpStartDate.getValue();
+        LocalDate end = dpEndDate.getValue();
+
+        // only when the room type and date have been selected should the database be checked
+        if (type != null && start != null && end != null) {
+            // Basic time logic verification
+            if (start.isBefore(LocalDate.now()) || end.isBefore(start) || start.isEqual(end)) {
+                comboCreateRoomNumber.setItems(FXCollections.observableArrayList());
+                comboCreateRoomNumber.setPromptText("Invalid Dates Selected");
+                return;
+            }
+
+            // call roomDAO
+            List<Integer> availableRooms = roomDAO.getAvailableRoomsForBooking(type, Date.valueOf(start), Date.valueOf(end));
+            comboCreateRoomNumber.setItems(FXCollections.observableArrayList(availableRooms));
+
+            if (availableRooms.isEmpty()) {
+                comboCreateRoomNumber.setPromptText("No rooms available for these dates");
+            } else {
+                comboCreateRoomNumber.setPromptText("Select an available room");
+            }
+        } else {
+            // if not all are selected, clear and alert
+            comboCreateRoomNumber.setItems(FXCollections.observableArrayList());
+            comboCreateRoomNumber.setPromptText("Select Dates & Type First");
+        }
     }
 
     public void setGuestDAO(GuestDAO guestDAO) {
