@@ -74,6 +74,40 @@
                 </VBox>
             </Tab>
 
+            <Tab text="Manage Reservations">
+                <VBox spacing="15.0">
+                    <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0" /></padding>
+
+                    <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Active Bookings" />
+
+                    <TableView fx:id="manageResTable" styleClass="table-view" prefHeight="300" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <TableColumn fx:id="colResId" prefWidth="80.0" text="Res ID" />
+                            <TableColumn fx:id="colResRoom" prefWidth="80.0" text="Room" />
+                            <TableColumn fx:id="colResGuest" prefWidth="180.0" text="Guest Name" />
+                            <TableColumn fx:id="colResStart" prefWidth="120.0" text="Start Date" />
+                            <TableColumn fx:id="colResEnd" prefWidth="120.0" text="End Date" />
+                            <TableColumn fx:id="colResTotal" prefWidth="100.0" text="Total ($)" />
+                            <TableColumn fx:id="colResStatus" prefWidth="100.0" text="Status" />
+                        </columns>
+                        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
+                    </TableView>
+
+                    <VBox style="-fx-background-color: white; -fx-padding: 15; -fx-border-color: #BDC3C7; -fx-border-radius: 5;" spacing="10">
+                        <Label style="-fx-font-weight: bold;" text="Action Panel (Select a row above first)" />
+                        <HBox alignment="CENTER_LEFT" spacing="15.0">
+                            <ComboBox fx:id="comboManageAction" prefWidth="200.0" promptText="Select Action..." />
+
+                            <DatePicker fx:id="dpManageStart" promptText="New Start Date" visible="false" managed="${dpManageStart.visible}"/>
+                            <DatePicker fx:id="dpManageEnd" promptText="New End Date" visible="false" managed="${dpManageEnd.visible}"/>
+                            <TextField fx:id="txtManagePrice" promptText="New Total Price ($)" visible="false" managed="${txtManagePrice.visible}"/>
+
+                            <Button mnemonicParsing="false" onAction="#handleConfirmManageAction" styleClass="button" text="Execute Action" />
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </Tab>
+
             <Tab text="Room Search &amp; Availability">
                 <VBox spacing="15.0">
                     <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0" /></padding>

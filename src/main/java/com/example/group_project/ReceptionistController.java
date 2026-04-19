@@ -43,6 +43,20 @@ public class ReceptionistController {
     @FXML private TableColumn<Map<String, Object>, String> colGuestPhone;
     @FXML private TableColumn<Map<String, Object>, String> colGuestEmail;
 
+    @FXML private TableView<Map<String, Object>> manageResTable;
+    @FXML private TableColumn<Map<String, Object>, Integer> colResId;
+    @FXML private TableColumn<Map<String, Object>, Integer> colResRoom;
+    @FXML private TableColumn<Map<String, Object>, String> colResGuest;
+    @FXML private TableColumn<Map<String, Object>, String> colResStart;
+    @FXML private TableColumn<Map<String, Object>, String> colResEnd;
+    @FXML private TableColumn<Map<String, Object>, Double> colResTotal;
+    @FXML private TableColumn<Map<String, Object>, String> colResStatus;
+
+    @FXML private ComboBox<String> comboManageAction;
+    @FXML private DatePicker dpManageStart;
+    @FXML private DatePicker dpManageEnd;
+    @FXML private TextField txtManagePrice;
+
     private RoomDAO roomDAO = new RoomDAO();
     private ReservationDAO reservationDAO = new ReservationDAO();
     private GuestDAO guestDAO = new GuestDAO();
@@ -51,10 +65,20 @@ public class ReceptionistController {
 
     @FXML
     public void initialize() {
-        comboRoomType.setItems(FXCollections.observableArrayList("All", "Single", "Double", "Suite"));
+        comboRoomType.setItems(FXCollections.observableArrayList(
+                "All",
+                "Single",
+                "Double",
+                "Suite"
+        ));
         comboRoomType.setValue("All");
 
-        comboStatus.setItems(FXCollections.observableArrayList("All", "Available", "Occupied", "Under Maintenance"));
+        comboStatus.setItems(FXCollections.observableArrayList(
+                "All",
+                "Available",
+                "Occupied",
+                "Under Maintenance"
+        ));
         comboStatus.setValue("All");
 
         colSearchRoomNum.setCellValueFactory(data ->
@@ -74,6 +98,8 @@ public class ReceptionistController {
                 new SimpleStringProperty((String) data.getValue().get("ContactNumber")));
         colGuestEmail.setCellValueFactory(data ->
                 new SimpleStringProperty((String) data.getValue().get("Email")));
+
+        setupManageTab();
     }
 
     @FXML
@@ -125,7 +151,8 @@ public class ReceptionistController {
 
             if (success) {
                 showAlert(Alert.AlertType.INFORMATION, "Success", "Reservation created and Room status updated!");
-                clearReservationForm(); // Clear form logic here
+                clearReservationForm(); // clear form logic here
+                refreshManageTable(); // refresh for resManage
 
                 new LogDAO().logAction("Created a new reservation for Room " + roomNum + " for Guest ID: " + guestId);
             } else {
@@ -232,20 +259,132 @@ public class ReceptionistController {
         }
     }
 
+    private void setupManageTab() {
+        colResId.setCellValueFactory(data ->
+                new SimpleObjectProperty<>((Integer) data.getValue().get("ReservationID")));
+        colResRoom.setCellValueFactory(data ->
+                new SimpleObjectProperty<>((Integer) data.getValue().get("RoomNumber")));
+        colResGuest.setCellValueFactory(data ->
+                new SimpleStringProperty((String) data.getValue().get("GuestName")));
+        colResStart.setCellValueFactory(data ->
+                new SimpleStringProperty((String) data.getValue().get("StartDate")));
+        colResEnd.setCellValueFactory(data ->
+                new SimpleStringProperty((String) data.getValue().get("EndDate")));
+        colResTotal.setCellValueFactory(data ->
+                new SimpleObjectProperty<>((Double) data.getValue().get("TotalPrice")));
+        colResStatus.setCellValueFactory(data ->
+                new SimpleStringProperty((String) data.getValue().get("Status")));
+
+        comboManageAction.setItems(FXCollections.observableArrayList(
+                "Check-out",
+                "Cancel Reservation",
+                "Reschedule / Extend"
+        ));
+
+        // ui listener: only when "reschedule/extend" is selected will the date and price box be displaying
+        comboManageAction.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            boolean isExtend = "Reschedule / Extend".equals(newVal);
+            dpManageStart.setVisible(isExtend);
+            dpManageEnd.setVisible(isExtend);
+            txtManagePrice.setVisible(isExtend);
+        });
+
+        refreshManageTable();
+    }
+
+    private void refreshManageTable() {
+        List<Map<String, Object>> activeRes = reservationDAO.getActiveReservations();
+        manageResTable.setItems(FXCollections.observableArrayList(activeRes));
+    }
+
+    @FXML
+    public void handleConfirmManageAction() {
+        // get order and operation that selected
+        Map<String, Object> selectedRes = manageResTable.getSelectionModel().getSelectedItem();
+        String action = comboManageAction.getValue();
+
+        if (selectedRes == null || action == null) {
+            showAlert(Alert.AlertType.WARNING, "Incomplete", "Please select a reservation and an action.");
+            return;
+        }
+
+        int resId = (int) selectedRes.get("ReservationID");
+        int roomNum = (int) selectedRes.get("RoomNumber");
+        String guestName = (String) selectedRes.get("GuestName");
+
+        // do different logics based on actions
+        switch (action) {
+            case "Check-out":
+                if ("Checked-out".equals(selectedRes.get("Status"))) {
+                    showAlert(Alert.AlertType.WARNING, "Warning", "Already checked out.");
+                    break;
+                }
+                if (reservationDAO.processCheckOut(resId, roomNum)) {
+                    showAlert(Alert.AlertType.INFORMATION, "Success", "Checked out successfully!");
+                    if(logDAO != null) logDAO.logAction("Processed Check-out for Room " + roomNum);
+                }
+                break;
+
+            case "Cancel Reservation":
+                // confirm dialog alert
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to cancel this booking?", ButtonType.YES, ButtonType.NO);
+                confirm.showAndWait();
+                if (confirm.getResult() == ButtonType.YES) {
+                    if (reservationDAO.cancelReservation(resId, roomNum)) {
+                        showAlert(Alert.AlertType.INFORMATION, "Success", "Reservation Cancelled.");
+                        if(logDAO != null) logDAO.logAction("Cancelled Reservation ID " + resId);
+                    }
+                }
+                break;
+
+            case "Reschedule / Extend":
+                // input validation
+                if (dpManageStart.getValue() == null || dpManageEnd.getValue() == null || txtManagePrice.getText().isEmpty()) {
+                    showAlert(Alert.AlertType.WARNING, "Missing Info", "Please provide new dates and new total price.");
+                    return;
+                }
+                try {
+                    java.sql.Date newStart = java.sql.Date.valueOf(dpManageStart.getValue());
+                    java.sql.Date newEnd = java.sql.Date.valueOf(dpManageEnd.getValue());
+                    double newPrice = Double.parseDouble(txtManagePrice.getText());
+
+                    if (newStart.after(newEnd)) {
+                        showAlert(Alert.AlertType.ERROR, "Date Error", "Start date must be before end date.");
+                        return;
+                    }
+
+                    // verify time conflicts! (excluding ur current order ID)
+                    if (reservationDAO.hasDateConflict(roomNum, newStart, newEnd, resId)) {
+                        showAlert(Alert.AlertType.ERROR, "Conflict", "Cannot extend/reschedule! Another guest has already booked this room during those dates.");
+                        return;
+                    }
+
+                    // update
+                    if (reservationDAO.updateReservationDates(resId, newStart, newEnd, newPrice)) {
+                        showAlert(Alert.AlertType.INFORMATION, "Success", "Reservation updated successfully!");
+                        if(logDAO != null) logDAO.logAction("Rescheduled/Extended Reservation ID " + resId);
+
+                        // clean form
+                        dpManageStart.setValue(null); dpManageEnd.setValue(null); txtManagePrice.clear();
+                    }
+                } catch (NumberFormatException e) {
+                    showAlert(Alert.AlertType.ERROR, "Format Error", "Price must be a valid number.");
+                }
+                break;
+        }
+
+        refreshManageTable();
+
+        // 为了体验完美，如果你在 RoomDAO 也有一个 refreshTable 方法，可以考虑这里连带调用，让 Room 的状态也实时刷新
+        // handleSearchRooms();
+    }
+
     private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);
         alert.showAndWait();
-    }
-
-    public RoomDAO getRoomDAO() {
-        return roomDAO;
-    }
-
-    public void setRoomDAO(RoomDAO roomDAO) {
-        this.roomDAO = roomDAO;
     }
 
     private void clearReservationForm() {
@@ -258,5 +397,11 @@ public class ReceptionistController {
 
     public void setGuestDAO(GuestDAO guestDAO) {
         this.guestDAO = guestDAO;
+    }
+    public RoomDAO getRoomDAO() {
+        return roomDAO;
+    }
+    public void setRoomDAO(RoomDAO roomDAO) {
+        this.roomDAO = roomDAO;
     }
 }

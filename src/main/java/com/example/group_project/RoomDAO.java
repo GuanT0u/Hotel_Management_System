@@ -56,28 +56,6 @@ public class RoomDAO {
         return roomList;
     }
 
-    /**
-     * Updates the status of a specific room.
-     * * @Frontend Usage:
-     * - Parameters: int roomNumber (extracted from the selected JTable row), 
-     * String newStatus ("Available", "Occupied", "Under Maintenance").
-     * - Returns: boolean true if updated successfully.
-     * - Error Handling: If false, show an alert "Failed to update room status." Refresh the JTable if true.
-     */
-    public boolean updateRoomStatus(int roomNumber, String newStatus) {
-        String query = "UPDATE rooms SET Status = ? WHERE RoomNumber = ?";
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, newStatus);
-            stmt.setInt(2, roomNumber);
-            return stmt.executeUpdate() > 0;
-        }
-
-        catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
     public Map<String, Integer> getRoomStatusCounts() {
         Map<String, Integer> counts = new HashMap<>();
         String query = "SELECT Status, COUNT(*) as Count FROM rooms GROUP BY Status";

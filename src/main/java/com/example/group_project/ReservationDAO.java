@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Date;
+import java.util.List;
+import java.util.Map;
 
 public class ReservationDAO {
     private Connection conn;
@@ -108,6 +110,95 @@ public class ReservationDAO {
 
         finally {
             try { conn.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+        }
+    }
+
+    public List<Map<String, Object>> getActiveReservations() {
+        List<Map<String, Object>> list = new java.util.ArrayList<>();
+        // query those info for stuff check from db tb
+        String query = "SELECT r.ReservationID, r.RoomNumber, g.FullName, r.StartDate, r.EndDate, r.TotalPrice, r.Status " +
+                "FROM reservations r JOIN guests g ON r.GuestID = g.GuestID " +
+                "WHERE r.Status IN ('Confirmed', 'Checked-in')";
+        try (PreparedStatement stmt = conn.prepareStatement(query);
+             java.sql.ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                Map<String, Object> map = new java.util.HashMap<>();
+                map.put("ReservationID", rs.getInt("ReservationID"));
+                map.put("RoomNumber", rs.getInt("RoomNumber"));
+                map.put("GuestName", rs.getString("FullName"));
+                map.put("StartDate", rs.getDate("StartDate").toString());
+                map.put("EndDate", rs.getDate("EndDate").toString());
+                map.put("TotalPrice", rs.getDouble("TotalPrice"));
+                map.put("Status", rs.getString("Status"));
+                list.add(map);
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
+    /**
+     * basic: FCFS, 1st come 1st served
+     * gotta check whether there're any other valid reservations with this room and during this new time period
+     */
+    public boolean hasDateConflict(int roomNumber, Date newStart, Date newEnd, int excludeReservationId) {
+        // Condition: The new check-in time is earlier than the other person's check-out time,
+        // and the new check-out time is later than the other person's check-in time
+        String query = "SELECT COUNT(*) FROM reservations " +
+                "WHERE RoomNumber = ? AND ReservationID != ? AND Status IN ('Confirmed', 'Checked-in') " +
+                "AND (StartDate < ? AND EndDate > ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, roomNumber);
+            stmt.setInt(2, excludeReservationId);
+            stmt.setDate(3, newEnd);
+            stmt.setDate(4, newStart);
+            try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0; // got crashed if it > 0
+                }
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return true;
+        // when an exception occurs, there is a default conflict to protect data security
+
+
+    }
+
+    // cancel the reservation and release the room status at the same time
+    public boolean cancelReservation(int reservationId, int roomNumber) {
+        String queryRes = "UPDATE reservations SET Status = 'Cancelled' WHERE ReservationID = ?";
+        String queryRoom = "UPDATE rooms SET Status = 'Available' WHERE RoomNumber = ?";
+        try {
+            conn.setAutoCommit(false);
+            try (PreparedStatement s1 = conn.prepareStatement(queryRes)) {
+                s1.setInt(1, reservationId);
+                s1.executeUpdate();
+            }
+            try (PreparedStatement s2 = conn.prepareStatement(queryRoom)) {
+                s2.setInt(1, roomNumber);
+                s2.executeUpdate();
+            }
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            try { conn.rollback(); } catch (SQLException ex) {}
+            return false;
+        } finally {
+            try { conn.setAutoCommit(true); } catch (SQLException ex) {}
+        }
+    }
+
+    // Extend/modify the booking time and price
+    public boolean updateReservationDates(int reservationId, Date newStart, Date newEnd, double newTotal) {
+        String query = "UPDATE reservations SET StartDate = ?, EndDate = ?, TotalPrice = ? WHERE ReservationID = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setDate(1, newStart);
+            stmt.setDate(2, newEnd);
+            stmt.setDouble(3, newTotal);
+            stmt.setInt(4, reservationId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }
