@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.chart.PieChart;
@@ -11,6 +12,7 @@ import javafx.scene.control.*;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
+import javafx.scene.Node;
 import javafx.stage.Stage;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
@@ -219,7 +221,7 @@ public class AdminController {
             if (controller.isOperationSuccessful()) {
                 refreshTable();
 
-                logDAO.logAction(roomData == null ? "Added a new room." : "Updated room details for ");
+                logDAO.logAction(roomData == null ? "Added a new room." : "Updated room details.");
                 loadSystemLogs();
             }
         } catch (IOException e) {
@@ -257,6 +259,40 @@ public class AdminController {
                 // capture and alert fk constraint got error
                 showAlert(Alert.AlertType.ERROR, "Delete Failed", "Cannot delete this room. It is likely tied to existing guest reservations in the database.");
             }
+        }
+    }
+
+    @FXML
+    public void handleLogout(ActionEvent event) {
+        // notice logout info
+        if (logDAO == null) {
+            logDAO = new LogDAO();
+        }
+        logDAO.logAction("Logged out of the system.");
+
+        // clear global login status (Session)
+        UserSession.logout();
+
+        // redirect to login page
+        try {
+            // get which stage user at (admi / stuff dashboard)
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+
+            // load Login.fxml
+            Parent root = FXMLLoader.load(getClass().getResource("Login.fxml"));
+
+            // change back the size of the login interface
+            Scene scene = new Scene(root, 500, 400);
+            scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+
+            stage.setScene(scene);
+            stage.setTitle("HRMS - Login");
+            stage.setResizable(false); // dont allow resize
+            stage.centerOnScreen();    // put it on mid of moniter
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "System Error", "Failed to load the login screen.");
         }
     }
 

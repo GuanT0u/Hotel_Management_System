@@ -14,6 +14,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
@@ -23,6 +24,9 @@
         <HBox alignment="CENTER_LEFT" prefHeight="60.0" style="-fx-background-color: #2C3E50;" BorderPane.alignment="CENTER">
             <padding><Insets left="20.0" right="20.0" /></padding>
             <Label style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white;" text="Front Desk Operations" />
+
+            <Region HBox.hgrow="ALWAYS" />
+            <Button mnemonicParsing="false" onAction="#handleLogout" styleClass="button-danger" text="Log Out" />
         </HBox>
     </top>
 
@@ -54,7 +58,7 @@
                         </HBox>
 
                         <Label text="Room Number:" GridPane.rowIndex="1" />
-                        <TextField fx:id="txtRoomNumber" promptText="e.g. 302" styleClass="text-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <TextField fx:id="txtRoomNumber" maxWidth="250.0" promptText="e.g. 302" styleClass="text-field" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                         <Label text="Check-in Date:" GridPane.rowIndex="2" />
                         <DatePicker fx:id="dpStartDate" prefWidth="250.0" styleClass="date-picker" GridPane.columnIndex="1" GridPane.rowIndex="2" />
@@ -63,7 +67,7 @@
                         <DatePicker fx:id="dpEndDate" prefWidth="250.0" styleClass="date-picker" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
                         <Label text="Total Price ($):" GridPane.rowIndex="4" />
-                        <TextField fx:id="txtTotalPrice" promptText="0.00" styleClass="text-field" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                        <TextField fx:id="txtTotalPrice" maxWidth="250.0" promptText="0.00" styleClass="text-field" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                     </GridPane>
 
                     <Button mnemonicParsing="false" onAction="#handleCreateReservation" prefHeight="40.0" prefWidth="200.0" styleClass="button" text="Confirm &amp; Book Room" />
