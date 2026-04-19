@@ -1,24 +1,36 @@
 package com.example.group_project;
 
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 public class DBConnection {
     private static DBConnection instance;
     private Connection connection;
-    
-    // Database credentials
-    private final String URL = "jdbc:mysql://my2.shuipu.work:2205/hotelManagement?useUnicode=true&characterEncoding=UTF-8";
-    private final String USERNAME = "root"; // Update with your local MySQL username
-    private final String PASSWORD = "HelloWorld"; // Update with your local MySQL password
 
+    // Database credentials
     private DBConnection() {
         try {
-            // Load the MySQL JDBC driver
+            // reading properties
+            Properties props = new Properties();
+            // if properties in resources
+            try (InputStream in = getClass().getClassLoader().getResourceAsStream("database.properties")) {
+                if (in == null) {
+                    throw new RuntimeException("Sorry, unable to find database.properties");
+                }
+                props.load(in);
+            }
+
+            String url = props.getProperty("db.url");
+            String user = props.getProperty("db.username");
+            String pass = props.getProperty("db.password");
+
             Class.forName("com.mysql.jdbc.Driver");
-            this.connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-        } catch (ClassNotFoundException | SQLException e) {
+            this.connection = DriverManager.getConnection(url, user, pass);
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

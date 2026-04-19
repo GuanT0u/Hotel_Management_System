@@ -1,5 +1,7 @@
 package com.example.group_project;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -28,18 +30,21 @@ public class UserDAO {
         String role = null;
         // In a real production environment, you would hash the incoming password and compare. 
         // Assuming plain text matching for the scope of standard OOP GUI testing unless hashed check is implemented.
-        String query = "SELECT UserID, Role FROM users WHERE Username = ? AND Password = ?";
+        String query = "SELECT UserID, Password, Role FROM users WHERE Username = ?";
         
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);
-            stmt.setString(2, password); 
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    role = rs.getString("Role");
-                    int userId = rs.getInt("UserID");
-                    // passing the logged user's info to global static class
-                    UserSession.login(userId, role);
+                    String storedHash = rs.getString("Password");
+
+                    if (BCrypt.checkpw(password, storedHash)) {
+                        role = rs.getString("Role");
+                        int userId = rs.getInt("UserID");
+                        // passing the logged user's info to global static class
+                        UserSession.login(userId, role);
+                    }
                 }
             }
         }
@@ -62,13 +67,16 @@ public class UserDAO {
         String query = "INSERT INTO users (Username, Password, Role, ContactInfo) VALUES (?, ?, 'Receptionist', ?)";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setString(1, username);
-            stmt.setString(2, password); // Note: Hash this before passing in production
+
+            // create hash and gensalt
+            String hashedPwd = BCrypt.hashpw(password, BCrypt.gensalt());
+            stmt.setString(2, hashedPwd);
+
             stmt.setString(3, contactInfo);
-            
+
             int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         }
-        
         catch (SQLException e) {
             e.printStackTrace();
             return false;

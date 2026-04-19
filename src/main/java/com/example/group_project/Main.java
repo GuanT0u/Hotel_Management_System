@@ -12,7 +12,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         // Ensure the FXML file is linked to the LoginController
         Parent root = FXMLLoader.load(getClass().getResource("Login.fxml"));
-        Scene scene = new Scene(root, 400, 300);
+        Scene scene = new Scene(root, 500, 400);
         
         // Apply the modern stylesheet
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
